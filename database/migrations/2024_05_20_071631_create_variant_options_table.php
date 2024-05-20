@@ -16,7 +16,7 @@ class CreateVariantOptionsTable extends Migration
         Schema::create('variant_options', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_variant')->nullable();
-            $table->string('variant-option')->nullable();
+            $table->string('variant_option')->nullable();
             $table->decimal('prix_unitaire', 20,5)->nullable();
             $table->jsonb('image_urls')->nullable();
             $table->timestamps();
