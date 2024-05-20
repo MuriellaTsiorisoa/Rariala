@@ -18,7 +18,7 @@ Schema::create('categories', function (Blueprint $table) {
             $table->string('categorie')->nullable();
             $table->timestamps();
         });
-php artisan make:crud categories "categorie:string"
+php artisan make:crud categories "categorie:string:nullable"
 
 -- chapeaux, sacs, ...
 Schema::create('modeles', function (Blueprint $table) {
@@ -26,7 +26,7 @@ Schema::create('modeles', function (Blueprint $table) {
             $table->string('modele')->nullable();
             $table->timestamps();
         });
-php artisan make:crud types "modele:string"
+php artisan make:crud modeles "modele:string:nullable"
 
 
 
@@ -44,10 +44,10 @@ Schema::create('produits', function (Blueprint $table) {
             $table->enum('type', ['forme', 'modele_existant', 'produit'])->default('produit')->nullable();
             $table->jsonb('image_urls')->nullable();
             $table->timestamps();
-            $table->foreign('id_categorie')->references('id')->on('categories');
-            $table->foreign('id_modele')->references('id')->on('modeles');
+            $table->foreign('id_categorie')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('id_modele')->references('id')->on('modeles')->onDelete('cascade');
         });
-php artisan make:crud produits "id_categorie:integer:unsigned:nullable,nom:string:nullable,description:text:nullable,quantite:integer:nullable:false,default:0,prix_unitaire:decimal:20,5:nullable,type:enum:forme,modele_existant,produit:default('produit'),image_urls:jsonb:nullable"
+php artisan make:crud produits "id_categorie:integer:unsigned:nullable,id_modele:integer:unsigned:nullable,nom:string:nullable,paragraphe:text:nullable,quantite:integer:nullable:false,default:0,hauteur:string:nullable,largeur:string:nullable,prix_unitaire:decimal:20,5:nullable,taille:enum:PM,MM,GM:nullable,type:enum:forme,modele_existant,produit:default('produit'),image_urls:jsonb:nullable"
 
 
 
@@ -57,7 +57,7 @@ Schema::create('variants', function (Blueprint $table) {
             $table->string('variant')->nullable();
             $table->timestamps();
         });
-php artisan make:crud variants "variant:string"
+php artisan make:crud variants "variant:string:nullable"
 
 
 -- rose, cuir de zébu noir, macramé, ...
@@ -68,19 +68,20 @@ Schema::create('variant_options', function (Blueprint $table) {
             $table->numeric('prix_unitaire', 20,5)->nullable();
             $table->jsonb('image_urls')->nullable();
             $table->timestamps();
-            $table->foreign('id_variant')->references('id')->on('variants');
+            $table->foreign('id_variant')->references('id')->on('variants')->onDelete('cascade');
         });
-php artisan make:crud variant_options "id_variant:integer,variant_option:string,prix_unitaire:decimal,image_urls:jsonb"
+php artisan make:crud variant_options "id_variant:integer:unsigned:nullable,variant_option:string:nullable,prix_unitaire:decimal:20,5:nullable,image_urls:jsonb:nullable"
 
 Schema::create('personnalisations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_produit')->nullable();
             $table->unsignedBigInteger('id_variant_option')->nullable();
             $table->timestamps();
-            $table->foreign('id_produit')->references('id')->on('produits');
-            $table->foreign('id_variant_option')->references('id')->on('variant_options');
+            $table->foreign('id_produit')->references('id')->on('produits')->onDelete('cascade');
+            $table->foreign('id_variant_option')->references('id')->on('variant_options')->onDelete('cascade');
         });
-php artisan make:crud personnalisations "id_produit:integer,id_variant_option:integer"
+php artisan make:crud personnalisations "id_produit:integer:unsigned:nullable,id_variant_option:integer:unsigned:nullable"
+
 
 Schema::create('ligne_paniers', function (Blueprint $table) {
             $table->id();
@@ -88,19 +89,19 @@ Schema::create('ligne_paniers', function (Blueprint $table) {
             $table->unsignedBigInteger('id_produit')->nullable();
             $table->integer('quantite')->nullable(false)->default(0);
             $table->timestamps();
-            $table->foreign('id_personnalisation')->references('id')->on('personnalisations');
-            $table->foreign('id_produit')->references('id')->on('produits');
+            $table->foreign('id_personnalisation')->references('id')->on('personnalisations')->onDelete('cascade');
+            $table->foreign('id_produit')->references('id')->on('produits')->onDelete('cascade');
         });
-php artisan make:crud ligne_paniers "id_personnalisation:integer:unsigned,quantite:integer:unsigned"
+php artisan make:crud ligne_paniers "id_personnalisation:integer:unsigned:nullable,id_produit:integer:unsigned:nullable,quantite:integer:unsigned:nullable:false,default:0"
 
 
 Schema::create('paniers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_ligne_panier')->nullable();
             $table->timestamps();
-            $table->foreign('id_ligne_panier')->references('id')->on('ligne_paniers');
+            $table->foreign('id_ligne_panier')->references('id')->on('ligne_paniers')->onDelete('cascade');
         });
-php artisan make:crud paniers "id_ligne_panier:integer:unsigned"
+php artisan make:crud paniers "id_ligne_panier:integer:unsigned:nullable"
 
 
 
@@ -124,6 +125,8 @@ php artisan make:crud paniers "id_ligne_panier:integer:unsigned"
             $table->foreign('id_panier')->references('id')->on('paniers')->onDelete('cascade');
             $table->foreign('id_user')->references('id')->on('users')->onDelete('cascade');
         });
+php artisan make:crud commandes "id_panier:integer:unsigned:nullable,id_user:integer:unsigned,nom:string:nullable,email:string:nullable,adresse_livraison:string,reperage_livraison:string:nullable,ville:string:nullable,province:string:nullable,code_postal:string:nullable,telephone:string:unique,reference_transfert:string:unique,date_commande:timestamp:default(DB::raw('CURRENT_TIMESTAMP'))"
+
 
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
@@ -133,6 +136,8 @@ php artisan make:crud paniers "id_ligne_panier:integer:unsigned"
 
             $table->foreign('id_produit')->references('id')->on('produits')->onDelete('cascade');
         });
+php artisan make:crud stocks "id_produit:integer:unsigned:unique,quantite_restante:integer:default(0)"
+
 
 
 
